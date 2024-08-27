@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prueba_arguello_joel/services/firestone_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void sendVerificationCode(String phoneNumber, Function(String) onCodeSent) async {
+  void sendVerificationCode(
+      String phoneNumber, Function(String) onCodeSent) async {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
@@ -20,17 +22,30 @@ class AuthService {
     );
   }
 
-  void verifyCode(String verificationId, String smsCode, String name) async {
-    PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: smsCode,
-    );
-
+  Future<bool> verifyCode(
+      String verificationId, String smsCode, String name) async {
     try {
-      UserCredential userCredential = await _auth.signInWithCredential(credential);
-      FirestoreService().storeOrUpdateUserInfo(userCredential.user, name);
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (userCredential.user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({'name': name});
+
+        return true; 
+      } else {
+        return false; 
+      }
     } catch (e) {
-      print('Error al verificar el código: ${e.toString()}');
+      print(e);
+      return false; 
     }
   }
 }

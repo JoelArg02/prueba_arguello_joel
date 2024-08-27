@@ -6,43 +6,53 @@ class VerificationPage extends StatelessWidget {
   final String name;
   final TextEditingController codeController = TextEditingController();
 
-  VerificationPage({required this.verificationId, required this.name});
+  VerificationPage({super.key, required this.verificationId, required this.name});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Verificar Código'),
+        title: const Text('Verificar Código'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: codeController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Ingrese el código de verificación',
               ),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final smsCode = codeController.text;
                 if (smsCode.isNotEmpty) {
-                  AuthService().verifyCode(
+                  bool success = await AuthService().verifyCode(
                     verificationId,
                     smsCode,
-                    name, // Pasamos el nombre para que se guarde en Firestore
+                    name,
                   );
+
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('¡Código verificado con éxito!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('El código de verificación es incorrecto.')),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Por favor, ingrese el código')),
+                    const SnackBar(content: Text('Por favor, ingrese el código')),
                   );
                 }
               },
-              child: Text('Verificar'),
+              child: const Text('Verificar'),
             ),
           ],
         ),

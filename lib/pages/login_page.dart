@@ -6,37 +6,39 @@ class LoginPage extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
+  LoginPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Iniciar Sesión'),
+        title: const Text('Iniciar Sesión'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Ingrese su nombre',
               ),
               keyboardType: TextInputType.name,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: phoneController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Ingrese su número de teléfono',
               ),
               keyboardType: TextInputType.phone,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 final name = nameController.text;
-                final phoneNumber = phoneController.text;
+                final phoneNumber = formatPhoneNumber(phoneController.text);
 
                 if (name.isNotEmpty && phoneNumber.isNotEmpty) {
                   AuthService().sendVerificationCode(
@@ -55,15 +57,25 @@ class LoginPage extends StatelessWidget {
                 } else {
                   // Muestra un mensaje si los campos están vacíos
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Por favor, complete todos los campos')),
+                    const SnackBar(content: Text('Por favor, complete todos los campos')),
                   );
                 }
               },
-              child: Text('Enviar Código'),
+              child: const Text('Enviar Código'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String formatPhoneNumber(String input) {
+    String cleaned = input.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (cleaned.startsWith('0')) {
+      cleaned = '+593' + cleaned.substring(1);
+    }
+
+    return cleaned;
   }
 }
